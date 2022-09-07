@@ -10,15 +10,30 @@ ISO_OUT_DIR=$(ISO_DIR)/out
 BUILD_DIR=build/bin
 INT_DIR=build/bin-int
 
-.PHONY: bootloader always clean run
+.PHONY: floppy bootloader dummy_prgm always clean run
 
+#
+# Floppy
+#
+floppy: $(ISO_DIR)/kOS.flp
+
+$(ISO_DIR)/kOS.flp: bootloader dummy_prgm;
+	cat $(BUILD_DIR)/bootloader.bin $(BUILD_DIR)/DummyProgram.bin > $(ISO_DIR)/kOS.flp
+
+#
+# Dummy Program
+#
+dummy_prgm: $(BUILD_DIR)/DummyProgram.bin;
+
+$(BUILD_DIR)/DummyProgram.bin:
+	$(ASM) $(SRC_DIR)/bootloader/DummyProgram.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/DummyProgram.bin
 #
 # Bootloader
 #
-bootloader: $(BUILD_DIR)/bootloader.flp
+bootloader: $(BUILD_DIR)/bootloader.bin
 
-$(BUILD_DIR)/bootloader.flp: always;
-	$(ASM) $(SRC_DIR)/bootloader/boot.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/bootloader.flp
+$(BUILD_DIR)/bootloader.bin: always;
+	$(ASM) $(SRC_DIR)/bootloader/boot.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/bootloader.bin
 
 #
 # Always
@@ -32,7 +47,7 @@ always:
 # Run
 #
 run:
-	$(shell qemu-system-i386 -fda $(BUILD_DIR)/bootloader.flp)
+	$(shell qemu-system-i386 -fda $(ISO_DIR)/kOS.flp)
 
 #
 # Clean
