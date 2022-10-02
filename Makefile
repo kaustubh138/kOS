@@ -10,30 +10,31 @@ ISO_OUT_DIR=$(ISO_DIR)/out
 BUILD_DIR=build/bin
 INT_DIR=build/bin-int
 
-.PHONY: floppy bootloader dummy_prgm always clean run
+.PHONY: floppy stage1_bootloader stage2_bootloader always clean rebuild run 
 
 #
 # Floppy
 #
 floppy: $(ISO_DIR)/kOS.flp
 
-$(ISO_DIR)/kOS.flp: bootloader dummy_prgm;
-	cat $(BUILD_DIR)/bootloader.bin $(BUILD_DIR)/DummyProgram.bin > $(ISO_DIR)/kOS.flp
+$(ISO_DIR)/kOS.flp: stage1_bootloader stage2_bootloader;
+	cat $(BUILD_DIR)/stage1_bootloader.bin $(BUILD_DIR)/stage2_bootloader.bin > $(ISO_DIR)/kOS.flp
 
 #
-# Dummy Program
+# Stage 2 Bootloader
 #
-dummy_prgm: $(BUILD_DIR)/DummyProgram.bin;
+stage2_bootloader: $(BUILD_DIR)/stage2_bootloader.bin;
 
-$(BUILD_DIR)/DummyProgram.bin:
-	$(ASM) $(SRC_DIR)/bootloader/DummyProgram.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/DummyProgram.bin
+$(BUILD_DIR)/stage2_bootloader.bin:
+	$(ASM) $(SRC_DIR)/bootloader/stage2_bootloader.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/stage2_bootloader.bin
+
 #
 # Bootloader
 #
-bootloader: $(BUILD_DIR)/bootloader.bin
+stage1_bootloader: $(BUILD_DIR)/stage1_bootloader.bin
 
-$(BUILD_DIR)/bootloader.bin: always;
-	$(ASM) $(SRC_DIR)/bootloader/boot.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/bootloader.bin
+$(BUILD_DIR)/stage1_bootloader.bin: always;
+	$(ASM) $(SRC_DIR)/bootloader/stage1_bootloader.asm $(ASM_FLAGS) $(ASM_FORMAT) -o $(BUILD_DIR)/stage1_bootloader.bin
 
 #
 # Always
@@ -54,3 +55,8 @@ run:
 #
 clean:
 	rm -rf $(BUILD_DIR)/* $(INT_DIR)/*
+
+#
+# Rebuild
+#
+rebuild: clean floppy
